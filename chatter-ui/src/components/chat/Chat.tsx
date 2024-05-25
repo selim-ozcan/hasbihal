@@ -15,9 +15,11 @@ import {
 import { Send as SendIcon } from "@mui/icons-material";
 import useCreateMessage from "../../hooks/useCreateMessage";
 import { useGetMessages } from "../../hooks/useGetMessages";
+import { useGetMe } from "../../hooks/useGetMe";
 
 const Chat = () => {
   const { id } = useParams();
+  const me = useGetMe();
   const [message, setMessage] = useState("");
   const { data: chat, isError } = useGetChat(id!);
   const { createMessage } = useCreateMessage();
@@ -84,38 +86,71 @@ const Chat = () => {
         {chat?.name}
       </h1>
       <Box sx={{ overflow: "auto", height: "100%" }}>
-        {messages?.map((message) => (
-          <Grid
-            key={message._id}
-            container
-            alignItems="center"
-            marginBottom="1rem"
-            /*flexDirection="row-reverse" */
-          >
-            <Grid item xs={2} lg={1}>
-              <Avatar
-                src=""
-                sx={{
-                  height: 52,
-                  width: 52,
-                  marginTop: "-15px",
-                }}
-              ></Avatar>
-            </Grid>
-            <Grid item xs={8} lg={10}>
-              <Stack /* alignItems="flex-end" */>
-                <Paper sx={{ width: "fit-content", marginRight: "0.25rem" }}>
-                  <Typography sx={{ padding: "0.9rem" }}>
-                    {message.content}
+        {messages
+          ?.sort((a, b) => new Date(a.createdAt) > new Date(b.createdAt))
+          .map((message) => (
+            <Grid
+              key={message._id}
+              container
+              alignItems="center"
+              marginBottom="1rem"
+              paddingRight="1rem"
+              {...(message.userId === me._id
+                ? { flexDirection: "row-reverse" }
+                : {})}
+            >
+              <Grid
+                item
+                xs={2}
+                lg={1}
+                sx={
+                  message.userId === me._id
+                    ? { display: "flex", justifyContent: "flex-end" }
+                    : { display: "flex" }
+                }
+              >
+                <Avatar
+                  src=""
+                  sx={{
+                    height: 52,
+                    width: 52,
+                    marginTop: "-15px",
+                  }}
+                ></Avatar>
+              </Grid>
+              <Grid item xs={9} lg={10}>
+                <Stack
+                  {...(message.userId === me._id
+                    ? { alignItems: "flex-end" }
+                    : {})}
+                >
+                  <Paper
+                    sx={{
+                      width: "fit-content",
+                      ...(message.userId === me._id
+                        ? { marginRight: "0.50rem" }
+                        : { marginLeft: "0.50rem" }),
+                    }}
+                  >
+                    <Typography sx={{ padding: "0.9rem" }}>
+                      {message.content}
+                    </Typography>
+                  </Paper>
+                  <Typography
+                    variant="caption"
+                    marginTop="0.2rem"
+                    sx={
+                      message.userId === me._id
+                        ? { marginRight: "1rem" }
+                        : { marginLeft: "1rem" }
+                    }
+                  >
+                    {new Date(message.createdAt).toLocaleTimeString()}
                   </Typography>
-                </Paper>
-                <Typography variant="caption" sx={{ marginLeft: "0.25rem" }}>
-                  {new Date(message.createdAt).toLocaleTimeString()}
-                </Typography>
-              </Stack>
+                </Stack>
+              </Grid>
             </Grid>
-          </Grid>
-        ))}
+          ))}
         <div ref={chatBottomRef}></div>
       </Box>
       <Paper

@@ -19,19 +19,26 @@ export abstract class AbstractRepository<T extends AbstractEntity> {
       _id: new Types.ObjectId(),
     });
 
-    return (await createdDocument.save()).toJSON() as unknown as T;
+    const newDocument = (await createdDocument.save()).toJSON() as unknown as T;
+    return { ...newDocument, __v: undefined };
   }
 
   async findOne(
     filterQuery: FilterQuery<T>,
+    populateField: string = null,
     projection: ProjectionType<T> = {},
   ): Promise<T> {
-    const document = await this.model
+    let query = this.model
       .findOne(filterQuery, projection)
-      .lean<T>();
+      .lean<T>()
+      .select('-__v');
+
+    if (populateField) query = query.populate(populateField, '-__v');
+
+    const document = await query;
 
     if (!document) {
-      this.logger.warn('Document was not found with filterQuery', filterQuery);
+      this.logger.warn('Document not found with filterQuery ', filterQuery);
       throw new NotFoundException('Document not found.');
     }
 
@@ -40,9 +47,17 @@ export abstract class AbstractRepository<T extends AbstractEntity> {
 
   async find(
     filterQuery: FilterQuery<T>,
+    populateField: string = null,
     projection: ProjectionType<T> = {},
   ): Promise<T[]> {
-    return this.model.find(filterQuery, projection).lean<T[]>();
+    let query = this.model
+      .find(filterQuery, projection)
+      .lean<T[]>()
+      .select('-__v');
+
+    if (populateField) query = query.populate(populateField, '-__v');
+
+    return query;
   }
 
   async findOneAndUpdate(
@@ -53,7 +68,8 @@ export abstract class AbstractRepository<T extends AbstractEntity> {
       .findOneAndUpdate(filterQuery, update, {
         new: true,
       })
-      .lean<T>();
+      .lean<T>()
+      .select('-__v');
 
     if (!document) {
       this.logger.warn('Document was not found with filterQuery', filterQuery);

@@ -34,9 +34,13 @@ const ChatListItem = ({ chat }) => {
                   variant="body2"
                   color="text.primary"
                 >
-                  Ali Connors
+                  {chat.lastMessage
+                    ? chat.lastMessage.content.substring(0, 20) +
+                      (chat.lastMessage.content.length > 20 ? "... " : " ")
+                    : null}
                 </Typography>
-                {" — I'll be in your neighborhood doing errands this…"}
+                {chat.lastMessage &&
+                  new Date(chat.lastMessage.createdAt).toLocaleTimeString()}
               </>
             }
           />

@@ -27,28 +27,20 @@ export const useGetMessages = (chatId) => {
   });
 
   useEffect(() => {
-    if (chatId && me?._id) {
-      socket.on(
-        "message",
-        async (message) => {
-          await queryClient.setQueryData(
-            ["messages", me._id, chatId],
-            (oldData: any[]) => {
-              return [...oldData, message];
-            }
-          );
+    const listener = async (message) => {
+      await queryClient.setQueryData(
+        ["messages", me._id, chatId],
+        (oldData: any[]) => {
+          return [...oldData, message];
         }
-
-        // her mesajda yeniden fetch de edilebilir ancak performans sıkıntısı yaratabilir.
-        // await queryClient.invalidateQueries({
-        //   queryKey: ["messages", me._id, chatId],
-        //   exact: true,
-        // })
       );
+    };
+    if (chatId && me?._id) {
+      socket.on("message", listener);
     }
 
     return () => {
-      socket.off("message");
+      socket.off("message", listener);
     };
   }, [chatId, me._id, socket]);
 

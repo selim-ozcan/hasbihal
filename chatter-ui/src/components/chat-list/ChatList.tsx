@@ -2,13 +2,37 @@ import List from "@mui/material/List";
 import ChatListItem from "./ChatListItem";
 import ChatListHeader from "./ChatListHeader";
 import { Divider, Stack } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddChatModal from "./AddChatModal";
 import { useGetChats } from "../../hooks/useGetChats";
+import { useSocketContext } from "../../hooks/useSocketContext";
 
 export default function ChatList() {
   const [showAddChatModal, setShowAddChatModal] = useState(false);
+  const { socket } = useSocketContext();
   const { data: chats } = useGetChats();
+  const [renderedChats, setRenderedChats] = useState<any[]>([]);
+
+  useEffect(() => {
+    setRenderedChats(chats);
+
+    const listener = async (message) => {
+      setRenderedChats(
+        chats.map((chat) => {
+          if (chat._id === message.chatId) {
+            return { ...chat, lastMessage: message };
+          } else return chat;
+        })
+      );
+    };
+    if (chats) {
+      socket.on("message", listener);
+    }
+
+    return () => {
+      socket.off("message", listener);
+    };
+  }, [chats, socket]);
 
   function handleOpenAddChatModal() {
     setShowAddChatModal(true);
@@ -34,9 +58,9 @@ export default function ChatList() {
             overflow: "auto",
           }}
         >
-          {chats &&
-            chats.length > 0 &&
-            chats.map((chat) => (
+          {renderedChats &&
+            renderedChats.length > 0 &&
+            renderedChats.map((chat) => (
               <ChatListItem key={chat._id} chat={chat}></ChatListItem>
             ))}
         </List>
