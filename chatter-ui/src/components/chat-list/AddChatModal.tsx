@@ -1,45 +1,32 @@
 import {
   Box,
   Button,
-  FormControlLabel,
-  FormGroup,
-  IconButton,
-  InputBase,
   Modal,
-  Paper,
   Stack,
-  Switch,
   TextField,
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 
-import SearchIcon from "@mui/icons-material/Search";
 import useCreateChat from "../../hooks/useCreateChat";
+import UserSearchInput from "./UserSearchInput";
 
 const AddChatModal = ({ open, handleClose }) => {
-  const [isPrivate, setIsPrivate] = useState(true);
   const [name, setName] = useState("");
-  const [userIds, setUserIds] = useState<string[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
   const { createChat } = useCreateChat();
-  const [emailToAdd, setEmailToAdd] = useState("");
 
   useEffect(() => {
-    setEmailToAdd("");
-    setUserIds([]);
+    setSelectedUsers([]);
   }, [open]);
 
   async function handleCreateChat() {
+    const userIds = selectedUsers.map((user) => user._id);
     handleClose();
     createChat({
-      isPrivate,
       name: name || undefined,
-      userIds: userIds.length === 0 ? undefined : userIds,
+      userIds: userIds,
     });
-  }
-
-  function handleAddUser() {
-    setUserIds((prev) => [...prev, emailToAdd]);
   }
 
   return (
@@ -57,53 +44,27 @@ const AddChatModal = ({ open, handleClose }) => {
           p: 4,
         }}
       >
-        <Stack spacing={2}>
-          <Typography variant="h6" component={"h2"}>
-            Add Chat
+        <Stack spacing={4}>
+          <Typography variant="h6" textAlign="center" component={"h2"}>
+            Create Chat
           </Typography>
-          <FormGroup>
-            <FormControlLabel
-              control={
-                <Switch
-                  defaultChecked
-                  value={isPrivate}
-                  onChange={(event) => setIsPrivate(event.target.checked)}
-                />
-              }
-              label="Private"
-            />
-          </FormGroup>
-          {isPrivate ? (
-            <>
-              <Paper
-                sx={{
-                  padding: "2px 4px",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <InputBase
-                  sx={{ ml: 1, flex: 1 }}
-                  placeholder="Search Users"
-                  value={emailToAdd}
-                  onChange={(event) => setEmailToAdd(event.target.value)}
-                />
-                <IconButton>
-                  <SearchIcon />
-                </IconButton>
-              </Paper>
-              <Button variant="outlined" onClick={handleAddUser}>
-                Add User
-              </Button>
-            </>
-          ) : (
-            <TextField
-              label={"Name"}
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            ></TextField>
-          )}
-          <Button variant="outlined" onClick={handleCreateChat}>
+
+          <TextField
+            label={"Name"}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          ></TextField>
+
+          <UserSearchInput
+            selectedUsers={selectedUsers}
+            setSelectedUsers={setSelectedUsers}
+          ></UserSearchInput>
+
+          <Button
+            variant="outlined"
+            onClick={handleCreateChat}
+            disabled={name === "" || selectedUsers.length === 0}
+          >
             Save
           </Button>
         </Stack>

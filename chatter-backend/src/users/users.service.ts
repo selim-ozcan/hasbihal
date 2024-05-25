@@ -19,8 +19,9 @@ export class UsersService {
     });
   }
 
-  findAll() {
-    return this.usersRepository.find({});
+  findAll(search: string) {
+    if (search) return this.usersRepository.find({ email: { $regex: search } });
+    else return this.usersRepository.find({});
   }
 
   findOne(_id: string) {

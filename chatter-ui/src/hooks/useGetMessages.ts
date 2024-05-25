@@ -28,12 +28,14 @@ export const useGetMessages = (chatId) => {
 
   useEffect(() => {
     const listener = async (message) => {
-      await queryClient.setQueryData(
-        ["messages", me._id, chatId],
-        (oldData: any[]) => {
-          return [...oldData, message];
-        }
-      );
+      if (message.chatId === chatId)
+        await queryClient.setQueryData(
+          ["messages", me._id, message.chatId],
+          (oldData: any[]) => {
+            return [...oldData, message];
+          },
+          {}
+        );
     };
     if (chatId && me?._id) {
       socket.on("message", listener);

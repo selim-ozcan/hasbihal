@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useGetMe } from "./useGetMe";
 import { useEffect } from "react";
 import { useSocketContext } from "./useSocketContext";
-import { useParams } from "react-router-dom";
 
 const getChats = async () => {
   const response = await fetch("http://localhost:3000/chats", {
@@ -32,7 +31,9 @@ export const useGetChats = () => {
     }
 
     return () => {
-      data.forEach((chat) => socket.emit("leave", { chatId: chat._id }));
+      if (data) {
+        data.forEach((chat) => socket.emit("leave", { chatId: chat._id }));
+      }
     };
   }, [user, data, socket]);
   return { data };

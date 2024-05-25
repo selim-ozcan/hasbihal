@@ -81,11 +81,13 @@ const Chat = () => {
           maxHeight: `calc(${calculateAddChatBarHeight()}px)`,
           alignContent: "center",
           margin: 0,
+          borderBottom: "1px solid rgba(255, 255, 255, 0.12)",
+          borderBottomWidth: "thin",
         }}
       >
         {chat?.name}
       </h1>
-      <Box sx={{ overflow: "auto", height: "100%" }}>
+      <Box sx={{ overflow: "auto", height: "100%", paddingTop: "1rem" }}>
         {messages
           ?.sort((a, b) => new Date(a.createdAt) > new Date(b.createdAt))
           .map((message) => (

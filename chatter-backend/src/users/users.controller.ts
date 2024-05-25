@@ -10,6 +10,7 @@ import {
   ForbiddenException,
   UseInterceptors,
   UseFilters,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -36,8 +37,8 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @UseInterceptors(PasswordTransformInterceptor)
   @Roles(Role.Admin, Role.User)
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query('search') search: string) {
+    return this.usersService.findAll(search);
   }
 
   @Get('me')

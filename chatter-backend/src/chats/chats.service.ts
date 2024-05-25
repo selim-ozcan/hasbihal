@@ -1,16 +1,35 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { ChatsRepository } from './chats.repository';
 import { TokenPayload } from 'src/auth/token-payload.interface';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class ChatsService {
-  constructor(private readonly chatsRepository: ChatsRepository) {}
+  constructor(
+    private readonly chatsRepository: ChatsRepository,
+    private readonly usersService: UsersService,
+  ) {}
 
   create(createChatDto: CreateChatDto, user: TokenPayload) {
+    createChatDto.userIds.forEach(async (userId) => {
+      try {
+        await this.usersService.findOne(userId);
+      } catch (error) {
+        throw new NotFoundException('User not found with given userId');
+      }
+    });
+    const userIds = createChatDto.userIds.filter(
+      (userId) => userId !== user._id,
+    );
+
     return this.chatsRepository.create({
       name: createChatDto.name,
-      userIds: createChatDto.userIds,
+      userIds: userIds,
       userId: user._id,
       lastMessage: null,
     });
