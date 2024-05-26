@@ -18,6 +18,7 @@ const AddChatModal = ({ open, handleClose }) => {
 
   useEffect(() => {
     setSelectedUsers([]);
+    setName("");
   }, [open]);
 
   async function handleCreateChat() {

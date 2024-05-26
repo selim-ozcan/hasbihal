@@ -13,6 +13,10 @@ export class CreateUserDto extends OmitType(User, ['_id']) {
   @IsNotEmpty()
   email: string;
 
+  @IsString()
+  @IsNotEmpty()
+  username: string;
+
   @IsStrongPassword()
   @IsString()
   @IsNotEmpty()

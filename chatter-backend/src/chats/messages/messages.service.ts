@@ -2,15 +2,19 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { ChatsRepository } from '../chats.repository';
 import { TokenPayload } from 'src/auth/token-payload.interface';
-import { Message } from './entities/message.entity';
-import { Types } from 'mongoose';
 import { MessagesRepository } from './messages.repository';
+import { S3Service } from 'src/common/s3/s3.service';
+import {
+  USERS_BUCKET,
+  USERS_IMAGE_FILE_EXTENSION,
+} from 'src/users/users.constants';
 
 @Injectable()
 export class MessagesService {
   constructor(
     private readonly chatsRepository: ChatsRepository,
     private readonly messagesRepository: MessagesRepository,
+    private readonly s3Service: S3Service,
   ) {}
 
   async create(createMessageDto: CreateMessageDto, user: TokenPayload) {
@@ -24,12 +28,19 @@ export class MessagesService {
         content: createMessageDto.content,
         chatId: createMessageDto.chatId,
         userId: user._id,
+        username: user.username,
         createdAt: new Date(),
       });
 
       await this.chatsRepository.updateLastMessage(chat, message);
 
-      return message;
+      return {
+        ...message,
+        imageUrl: this.s3Service.getObjectUrl(
+          USERS_BUCKET,
+          `${message.userId}.${USERS_IMAGE_FILE_EXTENSION}`,
+        ),
+      };
     } catch (error) {
       throw new ForbiddenException('You cannot send message to this chat.');
     }
@@ -44,7 +55,14 @@ export class MessagesService {
 
       const messages = await this.messagesRepository.find({ chatId });
 
-      return messages;
+      // populate user imageUrls
+      return messages.map((message) => ({
+        ...message,
+        imageUrl: this.s3Service.getObjectUrl(
+          USERS_BUCKET,
+          `${message.userId}.${USERS_IMAGE_FILE_EXTENSION}`,
+        ),
+      }));
     } catch (error) {
       throw new ForbiddenException('You are not a member of this chat.');
     }

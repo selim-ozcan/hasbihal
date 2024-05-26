@@ -22,6 +22,7 @@ export class AuthService {
     const tokenPayload: TokenPayload = {
       _id: user._id.toHexString(),
       email: user.email,
+      username: user.username,
       role: user.role,
     };
 

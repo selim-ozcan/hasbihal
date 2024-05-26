@@ -8,6 +8,9 @@ export class User extends AbstractEntity {
   email: string;
 
   @Prop()
+  username: string;
+
+  @Prop()
   password: string;
 
   @Prop({ enum: Role, default: Role.User })

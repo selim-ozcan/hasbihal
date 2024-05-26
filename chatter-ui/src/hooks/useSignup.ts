@@ -1,13 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
 import useLogin from "./useLogin";
 
-const signup = async ({ email, password }) => {
+const signup = async ({ email, username, password }) => {
   const response = await fetch("http://localhost:3000/users", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, username, password }),
   });
 
   if (!response.ok) {

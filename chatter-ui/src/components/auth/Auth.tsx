@@ -8,6 +8,7 @@ import useSignup from "../../hooks/useSignup";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ export default function Auth() {
     if (isLogin) {
       login({ email, password });
     } else {
-      signup({ email, password });
+      signup({ email, username, password });
     }
   }
 
@@ -61,6 +62,17 @@ export default function Auth() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
             />
+            {!isLogin ? (
+              <TextField
+                name="username"
+                type="username"
+                label="Username"
+                variant="outlined"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+              />
+            ) : null}
+
             <TextField
               name="email"
               type="password"

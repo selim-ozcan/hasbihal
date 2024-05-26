@@ -28,6 +28,7 @@ export const useGetMessages = (chatId) => {
 
   useEffect(() => {
     const listener = async (message) => {
+      console.log(message);
       if (message.chatId === chatId)
         await queryClient.setQueryData(
           ["messages", me._id, message.chatId],

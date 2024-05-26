@@ -10,6 +10,9 @@ export class Message extends AbstractEntity {
   @Prop({ type: SchemaTypes.ObjectId, ref: 'User' })
   userId: string;
 
+  @Prop()
+  username: string;
+
   @Prop({ type: SchemaTypes.ObjectId, ref: 'Chat' })
   chatId: string;
 

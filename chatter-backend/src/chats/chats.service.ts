@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -7,25 +8,34 @@ import { CreateChatDto } from './dto/create-chat.dto';
 import { ChatsRepository } from './chats.repository';
 import { TokenPayload } from 'src/auth/token-payload.interface';
 import { UsersService } from 'src/users/users.service';
+import { S3Service } from 'src/common/s3/s3.service';
+import {
+  USERS_BUCKET,
+  USERS_IMAGE_FILE_EXTENSION,
+} from 'src/users/users.constants';
 
 @Injectable()
 export class ChatsService {
   constructor(
     private readonly chatsRepository: ChatsRepository,
     private readonly usersService: UsersService,
+    private readonly s3Service: S3Service,
   ) {}
 
   create(createChatDto: CreateChatDto, user: TokenPayload) {
-    createChatDto.userIds.forEach(async (userId) => {
+    const userIds = createChatDto.userIds.filter(
+      (userId) => userId !== user._id,
+    );
+    userIds.forEach(async (userId) => {
       try {
         await this.usersService.findOne(userId);
       } catch (error) {
         throw new NotFoundException('User not found with given userId');
       }
     });
-    const userIds = createChatDto.userIds.filter(
-      (userId) => userId !== user._id,
-    );
+
+    if (userIds.length === 0)
+      throw new BadRequestException('userIds should not be empty.');
 
     return this.chatsRepository.create({
       name: createChatDto.name,
@@ -43,7 +53,16 @@ export class ChatsService {
       'lastMessage',
     );
 
-    return chats;
+    return chats.map((chat) => ({
+      ...chat,
+      lastMessage: chat.lastMessage && {
+        ...chat.lastMessage,
+        imageUrl: this.s3Service.getObjectUrl(
+          USERS_BUCKET,
+          `${chat.lastMessage.userId}.${USERS_IMAGE_FILE_EXTENSION}`,
+        ),
+      },
+    }));
   }
 
   async findOne(chatId: string, userId: string) {
@@ -56,6 +75,15 @@ export class ChatsService {
       throw new ForbiddenException('You can not fetch this chat.');
     }
 
-    return chat;
+    return {
+      ...chat,
+      lastMessage: chat.lastMessage && {
+        ...chat.lastMessage,
+        imageUrl: this.s3Service.getObjectUrl(
+          USERS_BUCKET,
+          `${chat.lastMessage.userId}.${USERS_IMAGE_FILE_EXTENSION}`,
+        ),
+      },
+    };
   }
 }

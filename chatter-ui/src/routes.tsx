@@ -6,6 +6,7 @@ import RootLayout from "./components/UI/RootLayout";
 import { queryClient } from "./constants/query-client";
 import { enqueueSnackbar } from "notistack";
 import Chat from "./components/chat/Chat";
+import Profile from "./components/profile/Profile";
 
 const homePageRoles = ["user", "admin"];
 const router = createBrowserRouter([
@@ -29,21 +30,12 @@ const router = createBrowserRouter([
         ],
       },
       {
+        path: "/profile",
+        element: <Profile />,
+      },
+      {
         path: "/logout",
-        loader: async () => {
-          try {
-            await fetch("http://localhost:3000/auth/logout", {
-              method: "POST",
-              credentials: "include",
-            });
-            await queryClient.invalidateQueries({ refetchType: "inactive" });
-            queryClient.clear();
-            enqueueSnackbar("You are logged out.", { variant: "success" });
-            return redirect("/");
-          } catch {
-            return redirect("/");
-          }
-        },
+        loader: logoutLoader,
       },
     ],
   },
@@ -54,3 +46,18 @@ const router = createBrowserRouter([
 ]);
 
 export default router;
+
+async function logoutLoader() {
+  try {
+    await fetch("http://localhost:3000/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+    await queryClient.invalidateQueries({ refetchType: "inactive" });
+    queryClient.clear();
+    enqueueSnackbar("You are logged out.", { variant: "success" });
+    return redirect("/");
+  } catch {
+    return redirect("/");
+  }
+}

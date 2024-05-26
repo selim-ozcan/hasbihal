@@ -39,7 +39,7 @@ export class MessageGateway {
   async sendMessage(@MessageBody() message, @CurrentUser() user) {
     try {
       await this.chatsService.findOne(message.chatId, user._id);
-      console.log('send message' + message);
+
       const newMessage = await this.messagesService.create(message, user);
       this.publishMessage(newMessage);
     } catch (error) {
@@ -55,7 +55,6 @@ export class MessageGateway {
     @CurrentUser() user: TokenPayload,
   ) {
     try {
-      console.log('kankaa ' + chatId);
       const chat = await this.chatsService.findOne(chatId, user._id);
       await client.join(`chats/${chat._id}`);
     } catch (error) {

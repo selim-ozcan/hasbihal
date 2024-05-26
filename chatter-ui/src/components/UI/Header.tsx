@@ -14,7 +14,6 @@ import Typography from "@mui/material/Typography";
 import { useState } from "react";
 
 function Header() {
-  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
 
   const navigate = useNavigate();
@@ -26,19 +25,11 @@ function Header() {
   };
 
   const handleOpenChatList = () => {
-    handleCloseNavMenu();
     navigate("/chats");
   };
 
-  const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElNav(event.currentTarget);
-  };
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget);
-  };
-
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
   };
 
   const handleCloseUserMenu = () => {
@@ -105,7 +96,7 @@ function Header() {
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                 <Avatar
                   alt={user?.email?.charAt(0)?.toUpperCase()}
-                  src="/static/images/avatar/2.jpg"
+                  src={user?.imageUrl}
                 />
               </IconButton>
             </Tooltip>
@@ -125,6 +116,9 @@ function Header() {
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
+              <MenuItem onClick={() => navigate("/profile")}>
+                <Typography textAlign="center">Profile</Typography>
+              </MenuItem>
               <MenuItem onClick={handleClickLogout}>
                 <Typography textAlign="center">Logout</Typography>
               </MenuItem>

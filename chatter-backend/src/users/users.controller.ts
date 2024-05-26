@@ -11,6 +11,10 @@ import {
   UseInterceptors,
   UseFilters,
   Query,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -22,6 +26,7 @@ import { Role } from 'src/auth/enums/role.enum';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { PasswordTransformInterceptor } from './interceptors/password-transform.interceptor';
 import { TokenPayload } from 'src/auth/token-payload.interface';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
 export class UsersController {
@@ -31,6 +36,27 @@ export class UsersController {
   @UseInterceptors(PasswordTransformInterceptor)
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
+  }
+
+  @Post('image')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  @Roles(Role.Admin, Role.User)
+  uploadProfileImage(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 10_000_000 }),
+          new FileTypeValidator({
+            fileType: 'image/jpeg',
+          }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+    @CurrentUser() user: TokenPayload,
+  ) {
+    this.usersService.uploadProfileImage(file.buffer, user._id);
   }
 
   @Get()
@@ -44,7 +70,7 @@ export class UsersController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async getMe(@CurrentUser() user: TokenPayload) {
-    return user;
+    return this.usersService.getMe(user);
   }
 
   @Get(':id')

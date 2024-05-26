@@ -111,14 +111,20 @@ const Chat = () => {
                     : { display: "flex" }
                 }
               >
-                <Avatar
-                  src=""
-                  sx={{
-                    height: 52,
-                    width: 52,
-                    marginTop: "-15px",
-                  }}
-                ></Avatar>
+                <Stack spacing={1} alignItems="center" justifyContent="center">
+                  {message.imageUrl && (
+                    <Avatar
+                      src={message.imageUrl}
+                      sx={{
+                        height: 52,
+                        width: 52,
+                        marginTop: "-15px",
+                      }}
+                    ></Avatar>
+                  )}
+
+                  <Typography variant="caption">{message.username}</Typography>
+                </Stack>
               </Grid>
               <Grid item xs={9} lg={10}>
                 <Stack
@@ -147,7 +153,8 @@ const Chat = () => {
                         : { marginLeft: "1rem" }
                     }
                   >
-                    {new Date(message.createdAt).toLocaleTimeString()}
+                    {new Date(message.createdAt).toLocaleTimeString()} -{" "}
+                    {new Date(message.createdAt).toLocaleDateString()}
                   </Typography>
                 </Stack>
               </Grid>

@@ -16,37 +16,45 @@ const ChatListItem = ({ chat }) => {
   }
   return (
     <>
-      <ListItem alignItems="flex-start" disablePadding>
-        <ListItemButton
-          onClick={handleChatClick}
-          selected={params.id === chat._id}
-        >
-          <ListItemAvatar>
-            <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-          </ListItemAvatar>
-          <ListItemText
-            primary={chat.name}
-            secondary={
-              <>
-                <Typography
-                  sx={{ display: "inline" }}
-                  component="span"
-                  variant="body2"
-                  color="text.primary"
-                >
-                  {chat.lastMessage
-                    ? chat.lastMessage.content.substring(0, 20) +
-                      (chat.lastMessage.content.length > 20 ? "... " : " ")
-                    : null}
-                </Typography>
-                {chat.lastMessage &&
-                  new Date(chat.lastMessage.createdAt).toLocaleTimeString()}
-              </>
-            }
-          />
-        </ListItemButton>
-      </ListItem>
-      <Divider variant="inset" component="li" />
+      {chat && (
+        <>
+          {" "}
+          <ListItem alignItems="flex-start" disablePadding>
+            <ListItemButton
+              onClick={handleChatClick}
+              selected={params.id === chat._id}
+            >
+              <ListItemAvatar>
+                <Avatar
+                  alt={chat.lastMessage?.username}
+                  src={chat.lastMessage?.imageUrl}
+                />
+              </ListItemAvatar>
+              <ListItemText
+                primary={chat.name}
+                secondary={
+                  <>
+                    <Typography
+                      sx={{ display: "inline" }}
+                      component="span"
+                      variant="body2"
+                      color="text.primary"
+                    >
+                      {chat.lastMessage
+                        ? chat.lastMessage.content.substring(0, 20) +
+                          (chat.lastMessage.content.length > 20 ? "... " : " ")
+                        : null}
+                    </Typography>
+                    {chat.lastMessage &&
+                      new Date(chat.lastMessage.createdAt).toLocaleTimeString()}
+                  </>
+                }
+              />
+            </ListItemButton>
+          </ListItem>
+          <Divider variant="inset" component="li" />
+        </>
+      )}
     </>
   );
 };
