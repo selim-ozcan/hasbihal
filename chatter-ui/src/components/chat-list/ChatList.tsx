@@ -60,9 +60,20 @@ export default function ChatList() {
         >
           {renderedChats &&
             renderedChats.length > 0 &&
-            renderedChats.map((chat) => (
-              <ChatListItem key={chat._id} chat={chat}></ChatListItem>
-            ))}
+            renderedChats
+              .sort((a, b) => {
+                return (
+                  (b.lastMessage
+                    ? new Date(b.lastMessage.createdAt).getTime()
+                    : 0) -
+                  (a.lastMessage
+                    ? new Date(a.lastMessage.createdAt).getTime()
+                    : 0)
+                );
+              })
+              .map((chat) => (
+                <ChatListItem key={chat._id} chat={chat}></ChatListItem>
+              ))}
         </List>
       </Stack>
     </>

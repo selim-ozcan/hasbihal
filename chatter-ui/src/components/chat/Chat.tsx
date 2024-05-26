@@ -89,7 +89,11 @@ const Chat = () => {
       </h1>
       <Box sx={{ overflow: "auto", height: "100%", paddingTop: "1rem" }}>
         {messages
-          ?.sort((a, b) => new Date(a.createdAt) > new Date(b.createdAt))
+          ?.sort(
+            (a, b) =>
+              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          )
+
           .map((message) => (
             <Grid
               key={message._id}
