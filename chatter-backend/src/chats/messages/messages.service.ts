@@ -36,6 +36,7 @@ export class MessagesService {
 
       return {
         ...message,
+        chatName: chat.name,
         imageUrl: this.s3Service.getObjectUrl(
           USERS_BUCKET,
           `${message.userId}.${USERS_IMAGE_FILE_EXTENSION}`,

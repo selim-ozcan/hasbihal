@@ -1,4 +1,4 @@
-import { UseGuards } from '@nestjs/common';
+import { Inject, UseGuards, forwardRef } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -27,11 +27,16 @@ export class MessageGateway {
 
   constructor(
     private readonly messagesService: MessagesService,
+    @Inject(forwardRef(() => ChatsService))
     private readonly chatsService: ChatsService,
   ) {}
 
   async publishMessage(message: Message) {
     this.server.to(`chats/${message.chatId}`).emit('message', message);
+  }
+
+  async publishChatAnnounce(userId, chat) {
+    this.server.to(`chat-announce/${userId}`).emit('chat-announce', chat);
   }
 
   @SubscribeMessage('message')
@@ -55,6 +60,8 @@ export class MessageGateway {
     @CurrentUser() user: TokenPayload,
   ) {
     try {
+      console.log(chatId);
+      console.log(user);
       const chat = await this.chatsService.findOne(chatId, user._id);
       await client.join(`chats/${chat._id}`);
     } catch (error) {
@@ -68,5 +75,22 @@ export class MessageGateway {
     @ConnectedSocket() client: Socket,
   ) {
     await client.leave(`chats/${chatId}`);
+  }
+
+  @SubscribeMessage('join-chat-announce')
+  @UseGuards(WsJwtAuthGuard)
+  async handleJoinChatAnnounce(
+    @ConnectedSocket() client: Socket,
+    @CurrentUser() user: TokenPayload,
+  ) {
+    await client.join(`chat-announce/${user._id}`);
+  }
+
+  @SubscribeMessage('leave-chat-announce')
+  async handleLeaveChatAnnounce(
+    @ConnectedSocket() client: Socket,
+    @CurrentUser() user: TokenPayload,
+  ) {
+    await client.leave(`chat-announce/${user._id}`);
   }
 }

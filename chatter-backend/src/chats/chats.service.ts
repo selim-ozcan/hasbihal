@@ -1,8 +1,10 @@
 import {
   BadRequestException,
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { ChatsRepository } from './chats.repository';
@@ -13,6 +15,7 @@ import {
   USERS_BUCKET,
   USERS_IMAGE_FILE_EXTENSION,
 } from 'src/users/users.constants';
+import { MessageGateway } from './messages/message.gateway';
 
 @Injectable()
 export class ChatsService {
@@ -20,9 +23,11 @@ export class ChatsService {
     private readonly chatsRepository: ChatsRepository,
     private readonly usersService: UsersService,
     private readonly s3Service: S3Service,
+    @Inject(forwardRef(() => MessageGateway))
+    private readonly messageGateway: MessageGateway,
   ) {}
 
-  create(createChatDto: CreateChatDto, user: TokenPayload) {
+  async create(createChatDto: CreateChatDto, user: TokenPayload) {
     const userIds = createChatDto.userIds.filter(
       (userId) => userId !== user._id,
     );
@@ -37,12 +42,18 @@ export class ChatsService {
     if (userIds.length === 0)
       throw new BadRequestException('userIds should not be empty.');
 
-    return this.chatsRepository.create({
+    const chat = await this.chatsRepository.create({
       name: createChatDto.name,
       userIds: userIds,
       userId: user._id,
       lastMessage: null,
     });
+
+    chat.userIds.forEach((userId) =>
+      this.messageGateway.publishChatAnnounce(userId, chat),
+    );
+
+    return chat;
   }
 
   async findAll(userId?: string) {

@@ -1,5 +1,5 @@
 import { useGetMe } from "../../hooks/useGetMe";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -11,9 +11,13 @@ import Container from "@mui/material/Container";
 import Avatar from "@mui/material/Avatar";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Badge from "@mui/material/Badge";
-import { styled } from "@mui/material";
+import { Button, styled } from "@mui/material";
+import { useSocketContext } from "../../hooks/useSocketContext";
+import { enqueueSnackbar } from "notistack";
+import { useGetChats } from "../../hooks/useGetChats";
+import { queryClient } from "../../constants/query-client";
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   "& .MuiBadge-badge": {
@@ -48,8 +52,79 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 
 function Header() {
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
+  const { socket } = useSocketContext();
   const navigate = useNavigate();
+  const { data } = useGetChats();
   const user = useGetMe();
+  const params = useParams();
+
+  useEffect(() => {
+    let c;
+    const listener = (chat) => {
+      c = chat;
+      socket.emit("join", { chatId: chat._id });
+      enqueueSnackbar(`New chat: ${chat.name}`, { variant: "info" });
+    };
+    socket.emit("join-chat-announce");
+    socket.on("chat-announce", listener);
+
+    return () => {
+      socket.off("chat-announce", listener);
+      socket.off("join-chat-announce");
+      if (c) socket.emit("leave", { chatId: c?._id });
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    if (data) {
+      data.forEach((chat) => socket.emit("join", { chatId: chat._id }));
+    }
+
+    return () => {
+      if (data) {
+        data.forEach((chat) => socket.emit("leave", { chatId: chat._id }));
+      }
+    };
+  }, [socket, data]);
+
+  useEffect(() => {
+    const listener = async (message) => {
+      if (params.id && message.chatId === params.id) {
+        await queryClient.setQueryData(
+          ["messages", user._id, message.chatId],
+          (oldData: any[]) => {
+            return [...oldData, message];
+          },
+          {}
+        );
+      } else {
+        enqueueSnackbar(`New message on chat: ${message.chatName}`, {
+          action: () => (
+            <Button
+              onClick={() => navigate(`/chats/${message.chatId}`)}
+              style={{
+                height: "100%",
+                left: 0,
+                position: "absolute",
+                top: 0,
+                width: "100%",
+              }}
+            />
+          ),
+          anchorOrigin: { horizontal: "center", vertical: "top" },
+          variant: "info",
+          TransitionProps: { direction: "down" },
+        });
+      }
+    };
+    if (user?._id) {
+      socket.on("message", listener);
+    }
+
+    return () => {
+      socket.off("message", listener);
+    };
+  }, [params, user?._id, socket, navigate]);
 
   const handleClickLogout = () => {
     handleCloseUserMenu();
