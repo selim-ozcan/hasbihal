@@ -37,6 +37,17 @@ const ChatListItem = ({ chat }) => {
                     <Typography
                       sx={{ display: "inline" }}
                       component="span"
+                      color="text.primary"
+                    >
+                      <strong>
+                        {chat.lastMessage
+                          ? chat.lastMessage.username + ": "
+                          : null}
+                      </strong>
+                    </Typography>{" "}
+                    <Typography
+                      sx={{ display: "inline" }}
+                      component="span"
                       variant="body2"
                       color="text.primary"
                     >
@@ -46,7 +57,10 @@ const ChatListItem = ({ chat }) => {
                         : null}
                     </Typography>
                     {chat.lastMessage &&
-                      new Date(chat.lastMessage.createdAt).toLocaleTimeString()}
+                      " - " +
+                        new Date(
+                          chat.lastMessage.createdAt
+                        ).toLocaleTimeString()}
                   </>
                 }
               />

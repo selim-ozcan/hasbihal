@@ -3,6 +3,7 @@ import { useGetMe } from "./useGetMe";
 import { queryClient } from "../constants/query-client";
 import { useEffect } from "react";
 import { useSocketContext } from "./useSocketContext";
+import { enqueueSnackbar } from "notistack";
 
 const getMessages = async (chatId: string) => {
   const response = await fetch(`http://localhost:3000/messages/${chatId}`, {
@@ -20,6 +21,7 @@ const getMessages = async (chatId: string) => {
 export const useGetMessages = (chatId) => {
   const me = useGetMe();
   const { socket } = useSocketContext();
+
   const { data } = useQuery({
     queryFn: () => getMessages(chatId),
     queryKey: ["messages", me._id, chatId],
@@ -28,8 +30,7 @@ export const useGetMessages = (chatId) => {
 
   useEffect(() => {
     const listener = async (message) => {
-      console.log(message);
-      if (message.chatId === chatId)
+      if (message.chatId === chatId) {
         await queryClient.setQueryData(
           ["messages", me._id, message.chatId],
           (oldData: any[]) => {
@@ -37,6 +38,16 @@ export const useGetMessages = (chatId) => {
           },
           {}
         );
+      } else {
+        const chat = queryClient
+          .getQueryData<any[]>(["chats", me._id])
+          ?.filter((chat) => chat._id === chatId)[0];
+        enqueueSnackbar(`New message on chat: ${chat.name}`, {
+          anchorOrigin: { horizontal: "center", vertical: "top" },
+          variant: "default",
+          TransitionProps: { direction: "down" },
+        });
+      }
     };
     if (chatId && me?._id) {
       socket.on("message", listener);

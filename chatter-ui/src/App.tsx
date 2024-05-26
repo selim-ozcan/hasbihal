@@ -1,4 +1,6 @@
-import { CssBaseline, Slide, ThemeProvider, createTheme } from "@mui/material";
+import CssBaseline from "@mui/material/CssBaseline";
+import { ThemeProvider } from "@mui/material/styles";
+import { Slide, createTheme } from "@mui/material";
 import { RouterProvider } from "react-router-dom";
 import router from "./routes";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -19,9 +21,9 @@ function App() {
             <SnackbarProvider
               autoHideDuration={2000}
               maxSnack={2}
-              anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+              anchorOrigin={{ horizontal: "center", vertical: "bottom" }}
               TransitionComponent={(props) => (
-                <Slide {...props} direction="up" />
+                <Slide direction="up" {...props} />
               )}
             >
               <RouterProvider router={router}></RouterProvider>
